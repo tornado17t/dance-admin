@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін-панель бронювань</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; color: #333; margin: 20px; }
+        h1 { text-align: center; color: #4a4a4a; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #6a82fb; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        #loader { font-size: 1.2em; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h1>📝 Адмін-панель бронювань</h1>
+
+    <div id="loader">Завантаження даних...</div>
+    <table id="bookingsTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>Ім'я користувача</th>
+                <th>Зал</th>
+                <th>Дата</th>
+                <th>Час</th>
+            </tr>
+        </thead>
+        <tbody id="bookingsBody">
+            </tbody>
+    </table>
+
+    <script>
+        // --- НАЛАШТУВАННЯ ---
+        // Вставте сюди публічну адресу вашого бота
+        const apiUrl = 'https://web-production-f54b8.up.railway.app/api/bookings';
+        // --------------------
+
+        async function fetchBookings() {
+            const loader = document.getElementById('loader');
+            const table = document.getElementById('bookingsTable');
+            const tableBody = document.getElementById('bookingsBody');
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`Помилка мережі: ${response.status}`);
+                }
+                const data = await response.json();
+                const bookings = data.bookings;
+
+                tableBody.innerHTML = '';
+
+                if (bookings.length === 0) {
+                    loader.textContent = 'Активних бронювань немає.';
+                } else {
+                    bookings.forEach(booking => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${booking.user_name}</td>
+                            <td>${booking.hall}</td>
+                            <td>${booking.date}</td>
+                            <td>${booking.time}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    
+                    loader.style.display = 'none';
+                    table.style.display = 'table';
+                }
+            } catch (error) {
+                console.error('Не вдалося завантажити дані:', error);
+                loader.textContent = '❌ Не вдалося завантажити дані. Перевірте консоль для деталей.';
+            }
+        }
+
+        fetchBookings();
+    </script>
+
+</body>
+</html>
